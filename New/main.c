@@ -11,7 +11,8 @@
 #define RS 0
 #define EN 1
 
-void spienable(void);
+void spi_init_slave(void);
+void spi_init_master(void);
 void putcspi(char cx);
 char getcspi(void);
 void lcd_comm(char);
@@ -20,7 +21,7 @@ void lcd_init(void);
 
 int main()
 {
-    spienable();
+    spi_init_slave();
     char temp = getcspi();
     lcd_init();
     lcd_data(temp);
@@ -53,10 +54,24 @@ char getcspi(void)
     return SPDR; // return the character
 }
 
-void spienable(void)
+void spi_init_slave(void)
 {
-    DDRB = (1 << MISO); // Set M0SI
+    DDRB = (1 << MISO); // Set MISO
     SPCR = (1 << SPE);  // Enable
+}
+
+void spi_init_master(void)
+{
+    DDRB = (1 << MOSI) | (1 << SCK);
+
+    // Enable SPI, Set as Master
+    // Prescaler: Fosc/16, Enable Interrupts
+    //The MOSI, SCK pins are as per ATMega8
+
+    SPCR = (1 << SPE) | (1 << MSTR);
+
+    // Enable Global Interrupts
+    sei();
 }
 
 void lcd_comm(char x)
