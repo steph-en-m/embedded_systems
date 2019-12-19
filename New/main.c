@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
+#include <stdio.h>
 
 #define MOSI 5
 #define MISO 6
@@ -13,19 +14,25 @@
 
 void spi_init_slave(void);
 void spi_init_master(void);
+unsigned char spi_tranceiver(unsigned char data);
 void putcspi(char cx);
 char getcspi(void);
 void lcd_comm(char);
 void lcd_data(char);
 void lcd_init(void);
+int gettemp(void);
 
 int main()
 {
+    spi_init_master();
     spi_init_slave();
-    char temp = getcspi();
+    int temp = gettemp();
+    // printf("Temp: %c", temp);
+    // char temp1 = spi_tranceiver();
     lcd_init();
     lcd_data(temp);
-    lcd_data('C');
+    lcd_data('2');
+    lcd_data('8');
 
     while (1)
     {
@@ -46,9 +53,19 @@ void putcspi(char cx)
 
 char getcspi(void)
 {
-    while (!(SPSR & (1 << 5)))
-        ;        // wait until write is permissible
-    SPDR = 0x00; // trigger 8 SCK  pulses to shift in data
+    //while (!(SPSR & (1 << 5)))
+    //; // wait until write is permissible
+    //SPDR = 0x00; // trigger 8 SCK  pulses to shift in data
+    while (!(SPSR & (1 << 7)))
+        ;        // wait until a byte has been shifted in
+    return SPDR; // return the character
+}
+
+int gettemp(void)
+{
+    // while (!(SPSR & (1 << 5)))
+    // ;        // wait until write is permissible
+    // SPDR = 0x00; // trigger 8 SCK  pulses to shift in data
     while (!(SPSR & (1 << 7)))
         ;        // wait until a byte has been shifted in
     return SPDR; // return the character
@@ -68,10 +85,23 @@ void spi_init_master(void)
     // Prescaler: Fosc/16, Enable Interrupts
     //The MOSI, SCK pins are as per ATMega8
 
-    SPCR = (1 << SPE) | (1 << MSTR);
+    SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 
     // Enable Global Interrupts
-    sei();
+    // sei();
+}
+
+unsigned char spi_tranceiver(unsigned char data)
+{
+    // Load data into the buffer
+    SPDR = data;
+
+    //Wait until transmission complete
+    while (!(SPSR & (1 << SPIF)))
+        ;
+
+    // Return received data
+    return (SPDR);
 }
 
 void lcd_comm(char x)
