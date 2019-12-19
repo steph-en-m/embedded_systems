@@ -8,7 +8,7 @@ typedef unsigned char uint8_t;
 #define SCL_CLK 100000L
 #define BITRATE(TWSR) ((F_CPU / SCL_CLK) - 16) / (2 * pow(4, (TWSR & ((1 << TWPS0) | (1 << TWPS1))))) /* Define bit rate */
 
-void I2C_Init() /* I2C initialize function */
+void i2c_init() /* I2C initialize function */
 {
     TWBR = BITRATE(TWSR = 0x00); /* Get bit rate register value by formula */
 }

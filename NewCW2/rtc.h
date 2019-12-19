@@ -17,7 +17,7 @@ int I2C_Read_Ack();                            /* I2C read ack function */
 int I2C_Read_Nack();                           /* I2C read nack function */
 //=====================RTC FUNCTIONS===============================
 
-bool IsItPM(char hour_)
+bool Afternoon(char hour_)
 {
     if (hour_ & (AMPM))
         return 1;

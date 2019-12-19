@@ -20,9 +20,7 @@
 #define F_CPU 1000000UL
 #endif
 
-/*MACROS*/
-#define SET_BIT(REG, BIT) ((REG) |= (1 << (BIT)))
-#define BUTTON 0
+#define set_bit(REG, BIT) ((REG) |= (1 << (BIT)))
 #define BAUDRATE 9600
 #define UBRR_VAL (((F_CPU / (BAUDRATE * 16UL))) - 1)
 
@@ -32,7 +30,7 @@ int main(void)
     char buffer[20];
     char *days[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-    I2C_Init();
+    i2c_init();
 
     //unsigned int starttime=millis();
     DDRF = 0xFF;
@@ -50,12 +48,11 @@ int main(void)
     double runingtime = 1.0000;
     char tmp[3], runduration[10];
 
-    /*--------------------------*/
     uint8_t high_temp_byte;
     //uint8_t low_temp_byte ;
     char dummy;
     char data;
-    /*--------------------------*/
+
     int waiting4number = 0;
     int waiting4min = 0;
     int waiting4max = 0;
@@ -70,27 +67,25 @@ int main(void)
 
     /* Set the baud rate to 9600 bps using 8MHz internal RC oscillator */
     USART1_Init(UBRR_VAL);
-    printstr2vt("\n  check_temperature : 1 \r");
-    printstr2vt("\n  check_period_____ : 2 \r");
-    printstr2vt("\n  check_date_______ : 3 \r");
-    printstr2vt("\n  Set min_temp_____ : 4 \r");
-    printstr2vt("\n  Set max_temp_____ : 5 \r");
-    printstr2vt("_________________________________________\r");
+    printstr2vt("Enter number to proceed:\n");
+    printstr2vt("1. Check temperature\r\n");
+    printstr2vt("2. Check period\r\n");
+    printstr2vt("3. Check date\r\n");
+    printstr2vt("4. Set min_temp\r\n");
+    printstr2vt("5. Set max_temp\r\n");
 
-    for (;;)
+    while (1)
     {
-        //========================RTC=======================================
         RTC_Read_Clock(0); /* Read the clock with second address i.e location is 0 */
         if (hour & TimeFormat12)
         {
             sprintf(buffer, "%02x:%02x:%02x  ", (hour & 0b00011111), minute, second);
-            if (IsItPM(hour))
+            if (Afternoon(hour))
                 strcat(buffer, "PM");
             else
                 strcat(buffer, "AM");
             //lcd_print_xy(0,0,buffer);
         }
-
         else
         {
             sprintf(buffer, "%02x:%02x:%02x  ", (hour & 0b00011111), minute, second);
@@ -101,21 +96,21 @@ int main(void)
 
         //==================================================================
         runingtime = runingtime + 1.5;
-        SPI_Init(MSB_FIRST);
-        SET_BIT(PORTB, SS);
-        SPI_Write(0x80);
+        spi_init(MSB_FIRST);
+        set_bit(PORTB, SS);
+        spi_write(0x80);
         _delay_ms(160);
         dummy = SPDR;
-        SPI_Write(0x11);      // set at control reg 0x15 to adjust it at one shot conversion .
+        spi_write(0x11);      // set at control reg 0x15 to adjust it at one shot conversion .
         CLEAR_BIT(PORTB, SS); // make CE to TC72 as 0 .
         dummy = SPDR;
         _delay_ms(160); // delay to complete temp conversion .
-        SET_BIT(PORTB, SS);
-        SPI_Write(0x02); // send address of temp high byte .
+        set_bit(PORTB, SS);
+        spi_write(0x02); // send address of temp high byte .
         dummy = SPDR;
-        SPI_Write(0x00); // send dummy output (0x00) to start clock pulses
+        spi_write(0x00); // send dummy output (0x00) to start clock pulses
         high_temp_byte = SPDR;
-        SPI_Write(0X00); //read temp low byte
+        spi_write(0X00); //read temp low byte
         CLEAR_BIT(PORTB, SS);
         result = high_temp_byte + 16;
         itoa(result, tmp, 10);
@@ -129,11 +124,11 @@ int main(void)
                 //read which Character is in inputcha
                 if (atoi(inputcha) == 4)
                 {
-                    printstr2vt("  Enter min-temp  :");
+                    printstr2vt("Enter min-temp  :");
                 }
                 else if (atoi(inputcha) == 5)
                 {
-                    printstr2vt("  enter max-temp  :");
+                    printstr2vt("Enter max-temp  :");
                 }
                 else if (atoi(inputcha) == 1)
                 {
