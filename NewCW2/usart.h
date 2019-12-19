@@ -1,5 +1,4 @@
-/* Initialize UART */
-/* Initialize USART */
+
 void USART1_Init(unsigned int ubrr_val)
 {
     unsigned char x;

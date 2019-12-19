@@ -4,7 +4,6 @@
 #include <avr/eeprom.h>
 #include <math.h>
 #include <stdlib.h>
-// #include <time.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -177,7 +176,7 @@ int main(void)
                 /*clear the inputnums variable*/
                 sprintf(inputchas, "");
                 sprintf(inputnums, "");
-                printstr2vt(" setting max....Done.");
+                printstr2vt("Setting maximum temperature...");
             }
             else if ((data == ';') && (waiting4number && waiting4min))
             { /*set min*/
@@ -188,7 +187,7 @@ int main(void)
                 /*clear the inputnums variable*/
                 sprintf(inputchas, "");
                 sprintf(inputnums, "");
-                printstr2vt(" setting min....Done.");
+                printstr2vt("Setting minimum temperature...");
             }
             else
             {
@@ -212,7 +211,6 @@ int main(void)
         {
             if (((result > max_tem) | (result < min_tem)))
             {
-
                 while (t < 4)
                 {
                     PORTF = 0x10; /*led blink*/
